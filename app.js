@@ -36,16 +36,20 @@ function loadData() {
     catch { return fallback; }
   };
   return {
-    player:  parse('player',  INITIAL_PLAYER),
+    player:  parse('player',  { ...INITIAL_PLAYER }),
     records: parse('records', []),
-    badges:  parse('badges',  INITIAL_BADGES),
+    badges:  parse('badges',  { ...INITIAL_BADGES }),
   };
 }
 
 function saveData(state) {
-  localStorage.setItem('player',  JSON.stringify(state.player));
-  localStorage.setItem('records', JSON.stringify(state.records));
-  localStorage.setItem('badges',  JSON.stringify(state.badges));
+  try {
+    localStorage.setItem('player',  JSON.stringify(state.player));
+    localStorage.setItem('records', JSON.stringify(state.records));
+    localStorage.setItem('badges',  JSON.stringify(state.badges));
+  } catch (e) {
+    console.error('データの保存に失敗しました:', e);
+  }
 }
 
 function resetData() {
