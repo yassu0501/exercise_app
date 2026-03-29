@@ -86,3 +86,45 @@ function getCharacter(level) {
   if (level <= 29) return { emoji: '⚔️', name: '戦士' };
   return { emoji: '🦸', name: '勇者' };
 }
+
+// === バッジロジック ===
+
+/**
+ * 新たに解除されたバッジIDの配列を返す
+ * @param {object} badges - 現在のバッジ状態
+ * @param {Array}  records - 全記録
+ * @returns {{ updatedBadges: object, newlyUnlocked: string[] }}
+ */
+function checkBadges(badges, records) {
+  const updated = { ...badges };
+  const newlyUnlocked = [];
+
+  function unlock(id) {
+    if (!updated[id]) { updated[id] = true; newlyUnlocked.push(id); }
+  }
+
+  // 初回記録
+  if (records.length >= 1) unlock('first_step');
+
+  // 累計100セット
+  if (records.length >= 100) unlock('total_100');
+
+  // 腕立て伏せ累計50セット
+  const pushupCount = records.filter(r => r.exerciseId === 'pushup').length;
+  if (pushupCount >= 50) unlock('pushup_50');
+
+  // 連続日数チェック
+  const dates = [...new Set(records.map(r => r.date))].sort();
+  let maxStreak = 1, currentStreak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i - 1]);
+    const curr = new Date(dates[i]);
+    const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+    currentStreak = diff === 1 ? currentStreak + 1 : 1;
+    if (currentStreak > maxStreak) maxStreak = currentStreak;
+  }
+  if (maxStreak >= 3) unlock('streak_3');
+  if (maxStreak >= 7) unlock('streak_7');
+
+  return { updatedBadges: updated, newlyUnlocked };
+}
