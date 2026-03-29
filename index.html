@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>運動RPG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ナビゲーション -->
+  <nav id="nav">
+    <button class="nav-btn active" data-screen="home">ホーム</button>
+    <button class="nav-btn" data-screen="workout">運動</button>
+    <button class="nav-btn" data-screen="badges">実績</button>
+    <button class="nav-btn" data-screen="history">履歴</button>
+  </nav>
+
+  <!-- ホーム画面 -->
+  <section id="screen-home" class="screen active">
+    <div id="character-display">
+      <div id="character-emoji">🐣</div>
+      <div id="character-level">Lv.1</div>
+    </div>
+    <div id="xp-bar-container">
+      <div id="xp-bar"></div>
+    </div>
+    <div id="xp-label">0 / 100 XP</div>
+    <button id="btn-go-workout">運動する！</button>
+  </section>
+
+  <!-- 運動選択画面 -->
+  <section id="screen-workout" class="screen">
+    <h2>運動を選ぼう</h2>
+    <div id="exercise-list"></div>
+  </section>
+
+  <!-- 実績画面 -->
+  <section id="screen-badges" class="screen">
+    <h2>実績バッジ</h2>
+    <div id="badge-list"></div>
+  </section>
+
+  <!-- 履歴画面 -->
+  <section id="screen-history" class="screen">
+    <h2>運動履歴</h2>
+    <div id="history-list"></div>
+  </section>
+
+  <!-- ポップアップ -->
+  <div id="popup" class="popup hidden">
+    <div id="popup-content"></div>
+  </div>
+
+  <!-- データリセット -->
+  <footer>
+    <button id="btn-reset">データをリセット</button>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
