@@ -192,15 +192,25 @@ function renderHistory(records) {
 
 function showPopup(title, message) {
   const popup = document.getElementById('popup');
-  document.getElementById('popup-content').innerHTML = `
-    <h3>${title}</h3>
-    <p>${message}</p>
-    <button id="popup-close">OK</button>
-  `;
+  const content = document.getElementById('popup-content');
+
+  const h3 = document.createElement('h3');
+  h3.textContent = title;
+
+  const p = document.createElement('p');
+  p.textContent = message;
+
+  const btn = document.createElement('button');
+  btn.id = 'popup-close';
+  btn.textContent = 'OK';
+  btn.addEventListener('click', () => popup.classList.add('hidden'));
+
+  content.innerHTML = '';
+  content.appendChild(h3);
+  content.appendChild(p);
+  content.appendChild(btn);
+
   popup.classList.remove('hidden');
-  document.getElementById('popup-close').addEventListener('click', () => {
-    popup.classList.add('hidden');
-  });
 }
 
 // === イベント登録 ===
@@ -244,6 +254,7 @@ function bindResetButton() {
 
 function recordExercise(exerciseId) {
   const ex = EXERCISES.find(e => e.id === exerciseId);
+  if (!ex) { console.error('Unknown exerciseId:', exerciseId); return; }
   const today = new Date().toISOString().slice(0, 10);
 
   // 記録追加
