@@ -57,3 +57,32 @@ function resetData() {
   localStorage.removeItem('records');
   localStorage.removeItem('badges');
 }
+
+// === ゲームロジック（pure functions）===
+
+/** レベルアップに必要なXP */
+function xpForNextLevel(level) {
+  return level * 100;
+}
+
+/** XPを加算し、レベルアップを処理した新しいplayerを返す */
+function applyXp(player, gainedXp) {
+  let { level, xp, totalXp } = player;
+  xp += gainedXp;
+  totalXp += gainedXp;
+  const leveledUp = [];
+  while (xp >= xpForNextLevel(level)) {
+    xp -= xpForNextLevel(level);
+    level += 1;
+    leveledUp.push(level);
+  }
+  return { level, xp, totalXp, leveledUp };
+}
+
+/** レベルに対応するキャラクター情報を返す */
+function getCharacter(level) {
+  if (level <= 5)  return { emoji: '🐣', name: 'ひよっこ' };
+  if (level <= 15) return { emoji: '🧍', name: '冒険者' };
+  if (level <= 29) return { emoji: '⚔️', name: '戦士' };
+  return { emoji: '🦸', name: '勇者' };
+}
