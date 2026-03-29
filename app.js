@@ -128,3 +128,164 @@ function checkBadges(badges, records) {
 
   return { updatedBadges: updated, newlyUnlocked };
 }
+
+// === UI レンダリング ===
+
+function renderHome(player) {
+  const char = getCharacter(player.level);
+  document.getElementById('character-emoji').textContent = char.emoji;
+  document.getElementById('character-level').textContent = `Lv.${player.level} ${char.name}`;
+
+  const needed = xpForNextLevel(player.level);
+  const pct = Math.min((player.xp / needed) * 100, 100);
+  document.getElementById('xp-bar').style.width = pct + '%';
+  document.getElementById('xp-label').textContent = `${player.xp} / ${needed} XP`;
+}
+
+function renderWorkout() {
+  const list = document.getElementById('exercise-list');
+  list.innerHTML = EXERCISES.map(ex => `
+    <div class="exercise-card">
+      <div class="exercise-info">
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-unit">${ex.unit} / 1セット</div>
+      </div>
+      <span class="exercise-xp">+${ex.xpPerSet}XP</span>
+      <button class="btn-complete" data-id="${ex.id}">完了</button>
+    </div>
+  `).join('');
+}
+
+function renderBadges(badges) {
+  const list = document.getElementById('badge-list');
+  list.innerHTML = BADGE_DEFS.map(b => {
+    const unlocked = badges[b.id];
+    return `
+      <div class="badge-card ${unlocked ? 'unlocked' : 'locked'}">
+        <div class="badge-emoji">${b.emoji}</div>
+        <div class="badge-name">${b.name}</div>
+        <div class="badge-desc">${b.desc}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderHistory(records) {
+  const list = document.getElementById('history-list');
+  if (records.length === 0) {
+    list.innerHTML = '<p style="color:#aaa;text-align:center;margin-top:32px">まだ記録がありません</p>';
+    return;
+  }
+  list.innerHTML = records.map(r => {
+    const ex = EXERCISES.find(e => e.id === r.exerciseId);
+    return `
+      <div class="history-item">
+        <div>
+          <div class="history-name">${ex ? ex.name : r.exerciseId}</div>
+          <div class="history-meta">${r.date}</div>
+        </div>
+        <div class="history-xp">+${r.xp}XP</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showPopup(title, message) {
+  const popup = document.getElementById('popup');
+  document.getElementById('popup-content').innerHTML = `
+    <h3>${title}</h3>
+    <p>${message}</p>
+    <button id="popup-close">OK</button>
+  `;
+  popup.classList.remove('hidden');
+  document.getElementById('popup-close').addEventListener('click', () => {
+    popup.classList.add('hidden');
+  });
+}
+
+// === イベント登録 ===
+
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screenId).classList.add('active');
+  document.querySelector(`.nav-btn[data-screen="${screenId}"]`).classList.add('active');
+
+  if (screenId === 'badges')  renderBadges(state.badges);
+  if (screenId === 'history') renderHistory(state.records);
+}
+
+function bindNavigation() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+  });
+  document.getElementById('btn-go-workout').addEventListener('click', () => showScreen('workout'));
+}
+
+function bindWorkoutButtons() {
+  renderWorkout();
+  document.getElementById('exercise-list').addEventListener('click', e => {
+    const btn = e.target.closest('.btn-complete');
+    if (!btn) return;
+    recordExercise(btn.dataset.id);
+  });
+}
+
+function bindResetButton() {
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (!confirm('データをリセットしますか？')) return;
+    resetData();
+    state = loadData();
+    renderHome(state.player);
+    showScreen('home');
+    alert('リセットしました');
+  });
+}
+
+function recordExercise(exerciseId) {
+  const ex = EXERCISES.find(e => e.id === exerciseId);
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 記録追加
+  const newRecord = { id: Date.now(), exerciseId, xp: ex.xpPerSet, date: today };
+  state.records = [newRecord, ...state.records];
+
+  // XP加算・レベルアップ
+  const { level, xp, totalXp, leveledUp } = applyXp(state.player, ex.xpPerSet);
+  state.player = { level, xp, totalXp };
+
+  // バッジチェック
+  const { updatedBadges, newlyUnlocked } = checkBadges(state.badges, state.records);
+  state.badges = updatedBadges;
+
+  saveData(state);
+  renderHome(state.player);
+
+  // 通知
+  if (leveledUp.length > 0) {
+    showPopup('🎉 レベルアップ！', `Lv.${leveledUp[leveledUp.length - 1]} ${getCharacter(level).name} になった！`);
+  } else if (newlyUnlocked.length > 0) {
+    const badge = BADGE_DEFS.find(b => b.id === newlyUnlocked[0]);
+    showPopup(`${badge.emoji} バッジ獲得！`, badge.name);
+  } else {
+    showPopup('✅ 記録完了！', `+${ex.xpPerSet}XP 獲得`);
+  }
+}
+
+// === 初期化 ===
+
+let state;
+
+function init() {
+  if (!storageAvailable()) {
+    alert('このブラウザではlocalStorageが使えません。プライベートブラウジングを解除してください。');
+    return;
+  }
+  state = loadData();
+  renderHome(state.player);
+  bindNavigation();
+  bindWorkoutButtons();
+  bindResetButton();
+}
+
+document.addEventListener('DOMContentLoaded', init);
