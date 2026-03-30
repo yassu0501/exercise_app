@@ -32,11 +32,12 @@ body {
   background-color: var(--bg);
   background-image: 
     radial-gradient(circle at 50% 50%, transparent 0%, rgba(8, 8, 15, 0.7) 100%),
-    url('/Users/yasudayuuta/.gemini/antigravity/brain/af4f1a50-0378-4b05-9dc8-7ea84ff5dd19/empty_rpg_gym_bg_v4_nocenter_1774839301875.png');
+    url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2670&auto=format&fit=crop');
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
-  opacity: 0.75;
+  opacity: 0.5;
+  filter: saturate(1.2) brightness(0.8) blur(2px);
 }
 
 /* === LAYOUT === */
