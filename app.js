@@ -62,7 +62,8 @@ function resetData() {
 
 /** レベルアップに必要なXP */
 function xpForNextLevel(level) {
-  return level * 100;
+  if (level < 100) return 100; // 100レベルまでは一律100XP
+  return 1000; // 100レベル以降は1000XP
 }
 
 /** XPを加算し、レベルアップを処理した新しいplayerを返す */
@@ -87,6 +88,20 @@ function getCharacter(level) {
   return { emoji: '🦸', name: '勇者' };
 }
 
+/** 全記録からプレイヤー統計（XP、レベル）を再計算する */
+function recalculatePlayerStats() {
+  const totalXp = state.records.reduce((sum, r) => sum + (r.xp || 0), 0);
+  let level = 1;
+  let xp = totalXp;
+  
+  while (xp >= xpForNextLevel(level)) {
+    xp -= xpForNextLevel(level);
+    level += 1;
+  }
+  
+  state.player = { level, xp, totalXp };
+}
+
 // === バッジロジック ===
 
 /**
@@ -107,10 +122,11 @@ function checkBadges(badges, records) {
   if (records.length >= 1) unlock('first_step');
 
   // 累計100セット
-  if (records.length >= 100) unlock('total_100');
+  const totalSets = records.reduce((sum, r) => sum + (r.sets || 1), 0);
+  if (totalSets >= 100) unlock('total_100');
 
   // 腕立て伏せ累計50セット
-  const pushupCount = records.filter(r => r.exerciseId === 'pushup').length;
+  const pushupCount = records.filter(r => r.exerciseId === 'pushup').reduce((sum, r) => sum + (r.sets || 1), 0);
   if (pushupCount >= 50) unlock('pushup_50');
 
   // 連続日数チェック
@@ -179,12 +195,18 @@ function renderHistory(records) {
   list.innerHTML = records.map(r => {
     const ex = EXERCISES.find(e => e.id === r.exerciseId);
     return `
-      <div class="history-item">
+      <div class="history-item" data-id="${r.id}">
         <div>
-          <div class="history-name">${ex ? ex.name : r.exerciseId}</div>
+          <div class="history-name">${ex ? ex.name : r.exerciseId} <span style="font-size:0.8em;color:var(--muted)">x ${r.sets || 1}</span></div>
           <div class="history-meta">${r.date}</div>
         </div>
-        <div class="history-xp">+${r.xp}XP</div>
+        <div class="history-xp">
+          +${r.xp}XP
+          <div class="history-actions">
+            <button class="btn-action btn-edit" data-id="${r.id}">編集</button>
+            <button class="btn-action btn-delete" data-id="${r.id}">削除</button>
+          </div>
+        </div>
       </div>
     `;
   }).join('');
@@ -213,6 +235,88 @@ function showPopup(title, message) {
   popup.classList.remove('hidden');
 }
 
+/** セット数入力ダイアログを表示（新規/編集 兼用） */
+function showSetInputPopup(exerciseId, recordId = null) {
+  let mode = 'add';
+  let exId = exerciseId;
+  let currentSets = 1;
+  
+  if (recordId) {
+    mode = 'edit';
+    const record = state.records.find(r => r.id === recordId);
+    if (!record) return;
+    exId = record.exerciseId;
+    currentSets = record.sets || 1;
+  }
+  
+  const ex = EXERCISES.find(e => e.id === exId);
+  const popup = document.getElementById('popup');
+  const content = document.getElementById('popup-content');
+
+  content.innerHTML = '';
+
+  const h3 = document.createElement('h3');
+  h3.textContent = (mode === 'edit' ? '【編集】' : '') + ex.name;
+  content.appendChild(h3);
+
+  const p = document.createElement('p');
+  p.textContent = `何セットおこないましたか？(${ex.unit} / 1セット)`;
+  content.appendChild(p);
+
+  const inputContainer = document.createElement('div');
+  inputContainer.className = 'set-input-container';
+
+  const inputGroup = document.createElement('div');
+  inputGroup.className = 'set-input-group';
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'input-number';
+  input.value = currentSets;
+  input.min = 1;
+  input.max = 99;
+  
+  const unitLabel = document.createElement('span');
+  unitLabel.className = 'set-unit';
+  unitLabel.textContent = 'セット';
+
+  inputGroup.appendChild(input);
+  inputGroup.appendChild(unitLabel);
+  inputContainer.appendChild(inputGroup);
+
+  const btnGroup = document.createElement('div');
+  btnGroup.className = 'btn-group';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-secondary';
+  cancelBtn.textContent = 'キャンセル';
+  cancelBtn.addEventListener('click', () => popup.classList.add('hidden'));
+
+  const submitBtn = document.createElement('button');
+  submitBtn.textContent = (mode === 'edit' ? '更新する' : '記録する');
+  submitBtn.addEventListener('click', () => {
+    const sets = parseInt(input.value);
+    if (isNaN(sets) || sets <= 0) return alert('1以上の数値を入力してください');
+    popup.classList.add('hidden');
+    
+    if (mode === 'edit') {
+      updateRecord(recordId, sets);
+    } else {
+      recordExercise(exId, sets);
+    }
+  });
+
+  btnGroup.appendChild(cancelBtn);
+  btnGroup.appendChild(submitBtn);
+  inputContainer.appendChild(btnGroup);
+
+  content.appendChild(inputContainer);
+  popup.classList.remove('hidden');
+
+  // Input Focus
+  setTimeout(() => input.focus(), 100);
+}
+
 // === イベント登録 ===
 
 function showScreen(screenId) {
@@ -230,6 +334,18 @@ function bindNavigation() {
     btn.addEventListener('click', () => showScreen(btn.dataset.screen));
   });
   document.getElementById('btn-go-workout').addEventListener('click', () => showScreen('workout'));
+  
+  // 履歴画面のイベント
+  document.getElementById('history-list').addEventListener('click', e => {
+    const editBtn = e.target.closest('.btn-edit');
+    const deleteBtn = e.target.closest('.btn-delete');
+    
+    if (editBtn) {
+      showSetInputPopup(null, parseInt(editBtn.dataset.id));
+    } else if (deleteBtn) {
+      deleteRecord(parseInt(deleteBtn.dataset.id));
+    }
+  });
 }
 
 function bindWorkoutButtons() {
@@ -237,7 +353,7 @@ function bindWorkoutButtons() {
   document.getElementById('exercise-list').addEventListener('click', e => {
     const btn = e.target.closest('.btn-complete');
     if (!btn) return;
-    recordExercise(btn.dataset.id);
+    showSetInputPopup(btn.dataset.id);
   });
 }
 
@@ -252,18 +368,20 @@ function bindResetButton() {
   });
 }
 
-function recordExercise(exerciseId) {
+function recordExercise(exerciseId, sets = 1) {
   const ex = EXERCISES.find(e => e.id === exerciseId);
   if (!ex) { console.error('Unknown exerciseId:', exerciseId); return; }
   const today = new Date().toISOString().slice(0, 10);
+  const gainedXp = ex.xpPerSet * sets;
+
+  const oldLevel = state.player.level;
 
   // 記録追加
-  const newRecord = { id: Date.now(), exerciseId, xp: ex.xpPerSet, date: today };
+  const newRecord = { id: Date.now(), exerciseId, sets, xp: gainedXp, date: today };
   state.records = [newRecord, ...state.records];
 
-  // XP加算・レベルアップ
-  const { level, xp, totalXp, leveledUp } = applyXp(state.player, ex.xpPerSet);
-  state.player = { level, xp, totalXp };
+  // 再計算
+  recalculatePlayerStats();
 
   // バッジチェック
   const { updatedBadges, newlyUnlocked } = checkBadges(state.badges, state.records);
@@ -273,13 +391,59 @@ function recordExercise(exerciseId) {
   renderHome(state.player);
 
   // 通知
-  if (leveledUp.length > 0) {
-    showPopup('🎉 レベルアップ！', `Lv.${leveledUp[leveledUp.length - 1]} ${getCharacter(level).name} になった！`);
+  if (state.player.level > oldLevel) {
+    showPopup('🎉 レベルアップ！', `Lv.${state.player.level} ${getCharacter(state.player.level).name} になった！`);
   } else if (newlyUnlocked.length > 0) {
     const badge = BADGE_DEFS.find(b => b.id === newlyUnlocked[0]);
     showPopup(`${badge.emoji} バッジ獲得！`, badge.name);
   } else {
-    showPopup('✅ 記録完了！', `+${ex.xpPerSet}XP 獲得`);
+    showPopup('✅ 記録完了！', `${sets}セット記録しました！(+${gainedXp}XP)`);
+  }
+}
+
+/** 記録を削除 */
+function deleteRecord(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  state.records = state.records.filter(r => r.id !== id);
+  
+  recalculatePlayerStats();
+  
+  // バッジ再チェック（新しく条件を満たす可能性があるため）
+  const { updatedBadges } = checkBadges(state.badges, state.records);
+  state.badges = updatedBadges;
+
+  saveData(state);
+  
+  renderHome(state.player);
+  renderHistory(state.records);
+  showPopup('🗑️ 削除完了', '記録を削除しました。');
+}
+
+/** 記録内容を更新 */
+function updateRecord(id, sets) {
+  const record = state.records.find(r => r.id === id);
+  if (!record) return;
+  
+  const ex = EXERCISES.find(e => e.id === record.exerciseId);
+  record.sets = sets;
+  record.xp = (ex ? ex.xpPerSet : 0) * sets;
+  
+  recalculatePlayerStats();
+  
+  // バッジ再チェック
+  const { updatedBadges, newlyUnlocked } = checkBadges(state.badges, state.records);
+  state.badges = updatedBadges;
+
+  saveData(state);
+  
+  renderHome(state.player);
+  renderHistory(state.records);
+
+  if (newlyUnlocked.length > 0) {
+    const badge = BADGE_DEFS.find(b => b.id === newlyUnlocked[0]);
+    showPopup(`${badge.emoji} バッジ獲得！`, badge.name);
+  } else {
+    showPopup('✏️ 変更完了', '記録を更新しました。');
   }
 }
 
@@ -293,6 +457,7 @@ function init() {
     return;
   }
   state = loadData();
+  recalculatePlayerStats(); // XPルール変更を既存データに反映
   renderHome(state.player);
   bindNavigation();
   bindWorkoutButtons();
