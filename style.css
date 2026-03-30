@@ -20,10 +20,126 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* === BACKGROUND LAYER === */
+#bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg);
+  background-image: 
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(8, 8, 15, 0.7) 100%),
+    url('/Users/yasudayuuta/.gemini/antigravity/brain/af4f1a50-0378-4b05-9dc8-7ea84ff5dd19/empty_rpg_gym_bg_v4_nocenter_1774839301875.png');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  opacity: 0.75;
+}
+
+/* === LAYOUT === */
+#layout-wrapper {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  position: relative;
+}
+
+#app-container {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
-  max-width: 480px;
-  margin: 0 auto;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: relative;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+/* Hide side panels on small screens */
+.side-panel {
+  display: none;
+  flex: 1;
+  padding: 60px 40px;
+  max-width: 400px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+@media (min-width: 1000px) {
+  .side-panel {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* === DECO WIDGETS === */
+.deco-widget {
+  border-left: 2px solid var(--accent);
+  padding-left: 15px;
+  margin-bottom: 30px;
+  opacity: 0.6;
+  filter: blur(0.3px);
+}
+
+.deco-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+
+.deco-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+
+.deco-bar {
+  width: 150px;
+  height: 4px;
+  background: var(--surface-2);
+  margin-top: 10px;
+  position: relative;
+}
+
+.deco-bar span {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 65%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.deco-graph {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+  margin-top: 15px;
+}
+
+.deco-graph .bar {
+  width: 8px;
+  background: var(--accent);
+  opacity: 0.4;
+}
+
+.deco-matrix {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 15px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  opacity: 0.3;
 }
 
 /* === NAVIGATION === */
@@ -226,7 +342,8 @@ body {
 /* === WORKOUT BUTTON === */
 #btn-go-workout {
   display: block;
-  width: 100%;
+  width: calc(100% - 40px);
+  margin: 20px auto 0;
   padding: 18px;
   background: transparent;
   border: 2px solid var(--danger);
@@ -242,7 +359,6 @@ body {
   text-shadow: 0 0 8px rgba(255, 45, 85, 0.5);
   box-shadow: 0 0 16px rgba(255, 45, 85, 0.15), inset 0 0 16px rgba(255, 45, 85, 0.04);
   letter-spacing: 0.12em;
-  margin-top: auto;
 }
 
 /* Sweep light */
