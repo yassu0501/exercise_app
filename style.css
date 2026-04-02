@@ -420,6 +420,14 @@ body {
 
 .exercise-info { flex: 1; }
 
+.exercise-icon-small {
+  font-size: 24px;
+  margin-right: 14px;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .exercise-name {
   font-weight: 700;
   font-size: 14px;
@@ -534,6 +542,19 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: border-color 0.2s;
+}
+
+.history-main-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.history-icon {
+  font-size: 22px;
+  width: 28px;
+  text-align: center;
 }
 
 .history-name {

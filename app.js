@@ -1,12 +1,13 @@
 // === 定数 ===
 
 const EXERCISES = [
-  { id: 'pushup',       name: '腕立て伏せ',         unit: '10回',  xpPerSet: 30 },
-  { id: 'squat',        name: 'スクワット',           unit: '10回',  xpPerSet: 25 },
-  { id: 'plank',        name: 'プランク',             unit: '30秒',  xpPerSet: 20 },
-  { id: 'jumping_jack', name: 'ジャンピングジャック', unit: '10回',  xpPerSet: 20 },
-  { id: 'situp',        name: '腹筋',                 unit: '10回',  xpPerSet: 25 },
-  { id: 'momomage',     name: '腿上げ',               unit: '10回',  xpPerSet: 20 },
+  { id: 'pushup',       name: '腕立て伏せ',         unit: '10回',  xpPerSet: 30, emoji: '💪' },
+  { id: 'squat',        name: 'スクワット',           unit: '10回',  xpPerSet: 25, emoji: '🦵' },
+  { id: 'plank',        name: 'プランク',             unit: '30秒',  xpPerSet: 20, emoji: '⏱️' },
+  { id: 'jumping_jack', name: 'ジャンピングジャック', unit: '10回',  xpPerSet: 20, emoji: '🤸' },
+  { id: 'situp',        name: '腹筋',                 unit: '10回',  xpPerSet: 25, emoji: '🧘' },
+  { id: 'momomage',     name: '腿上げ',               unit: '10回',  xpPerSet: 20, emoji: '🏃' },
+  { id: 'shagami',      name: 'しゃがみ運動',          unit: '30秒',  xpPerSet: 20, emoji: '🪑' },
 ];
 
 const BADGE_DEFS = [
@@ -15,6 +16,8 @@ const BADGE_DEFS = [
   { id: 'streak_7',     emoji: '⚡', name: '週の勇者',     desc: '7日連続記録' },
   { id: 'total_100',    emoji: '💯', name: '百戦錬磨',     desc: '累計100セット記録' },
   { id: 'pushup_50',    emoji: '💪', name: '筋肉王',       desc: '腕立て伏せを累計50セット記録' },
+  { id: 'squat_50',     emoji: '🦵', name: '鋼の脚',       desc: 'スクワットを累計50セット記録' },
+  { id: 'shagami_50',   emoji: '🪑', name: '不屈の足腰',   desc: 'しゃがみ運動を累計50セット記録' },
 ];
 
 const INITIAL_PLAYER  = { level: 1, xp: 0, totalXp: 0 };
@@ -129,6 +132,14 @@ function checkBadges(badges, records) {
   const pushupCount = records.filter(r => r.exerciseId === 'pushup').reduce((sum, r) => sum + (r.sets || 1), 0);
   if (pushupCount >= 50) unlock('pushup_50');
 
+  // スクワット累計50セット
+  const squatCount = records.filter(r => r.exerciseId === 'squat').reduce((sum, r) => sum + (r.sets || 1), 0);
+  if (squatCount >= 50) unlock('squat_50');
+
+  // しゃがみ運動累計50セット
+  const shagamiCount = records.filter(r => r.exerciseId === 'shagami').reduce((sum, r) => sum + (r.sets || 1), 0);
+  if (shagamiCount >= 50) unlock('shagami_50');
+
   // 連続日数チェック
   const dates = [...new Set(records.map(r => r.date))].sort();
   let maxStreak = 1, currentStreak = 1;
@@ -162,6 +173,7 @@ function renderWorkout() {
   const list = document.getElementById('exercise-list');
   list.innerHTML = EXERCISES.map(ex => `
     <div class="exercise-card">
+      <div class="exercise-icon-small">${ex.emoji || '✨'}</div>
       <div class="exercise-info">
         <div class="exercise-name">${ex.name}</div>
         <div class="exercise-unit">${ex.unit} / 1セット</div>
@@ -196,9 +208,12 @@ function renderHistory(records) {
     const ex = EXERCISES.find(e => e.id === r.exerciseId);
     return `
       <div class="history-item" data-id="${r.id}">
-        <div>
-          <div class="history-name">${ex ? ex.name : r.exerciseId} <span style="font-size:0.8em;color:var(--muted)">x ${r.sets || 1}</span></div>
-          <div class="history-meta">${r.date}</div>
+        <div class="history-main-info">
+          <div class="history-icon">${ex ? ex.emoji : '❓'}</div>
+          <div>
+            <div class="history-name">${ex ? ex.name : r.exerciseId} <span style="font-size:0.8em;color:var(--muted)">x ${r.sets || 1}</span></div>
+            <div class="history-meta">${r.date}</div>
+          </div>
         </div>
         <div class="history-xp">
           +${r.xp}XP
