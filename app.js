@@ -1,13 +1,13 @@
 // === 定数 ===
 
 const EXERCISES = [
-  { id: 'pushup',       name: '腕立て伏せ',         unit: '10回',  xpPerSet: 30, emoji: '💪' },
-  { id: 'squat',        name: 'スクワット',           unit: '10回',  xpPerSet: 25, emoji: '🦵' },
-  { id: 'plank',        name: 'プランク',             unit: '30秒',  xpPerSet: 20, emoji: '⏱️' },
-  { id: 'jumping_jack', name: 'ジャンピングジャック', unit: '10回',  xpPerSet: 20, emoji: '🤸' },
-  { id: 'situp',        name: '腹筋',                 unit: '10回',  xpPerSet: 25, emoji: '🧘' },
+  { id: 'pushup',       name: '腕立て伏せ',         unit: '10回',  xpPerSet: 60, emoji: '💪' },
+  { id: 'squat',        name: 'スクワット',           unit: '10回',  xpPerSet: 50, emoji: '🦵' },
+  { id: 'plank',        name: 'プランク',             unit: '30秒',  xpPerSet: 40, emoji: '⏱️' },
+  { id: 'jumping_jack', name: 'ジャンピングジャック', unit: '10回',  xpPerSet: 40, emoji: '🤸' },
+  { id: 'situp',        name: '腹筋',                 unit: '10回',  xpPerSet: 50, emoji: '🧘' },
   { id: 'momomage',     name: '腿上げ',               unit: '10回',  xpPerSet: 20, emoji: '🏃' },
-  { id: 'shagami',      name: 'しゃがみ運動',          unit: '30秒',  xpPerSet: 20, emoji: '🪑' },
+  { id: 'shagami',      name: 'しゃがみ運動',          unit: '30秒',  xpPerSet: 40, emoji: '🪑' },
 ];
 
 const BADGE_DEFS = [
