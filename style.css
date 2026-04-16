@@ -264,13 +264,53 @@ body {
   letter-spacing: 0.15em;
 }
 
-#character-emoji {
-  font-size: 88px;
-  line-height: 1;
+/* Level tier colors */
+#character-display[data-tier="1"] { --level-color: #00e5ff; }
+#character-display[data-tier="2"] { --level-color: #22c55e; }
+#character-display[data-tier="3"] { --level-color: #f97316; }
+#character-display[data-tier="4"] { --level-color: #ffd700; }
+
+/* Aura ring around character */
+#character-ring {
+  display: inline-block;
   position: relative;
   z-index: 2;
+  padding: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--level-color, #00e5ff);
+  box-shadow:
+    0 0 12px var(--level-color, #00e5ff),
+    0 0 28px rgba(0, 229, 255, 0.2),
+    inset 0 0 12px rgba(0, 229, 255, 0.05);
+  transition: border-color 0.6s ease, box-shadow 0.6s ease;
+  animation: ring-pulse 3s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%, 100% { box-shadow: 0 0 12px var(--level-color, #00e5ff), 0 0 28px rgba(0,229,255,0.2); }
+  50%       { box-shadow: 0 0 20px var(--level-color, #00e5ff), 0 0 48px rgba(0,229,255,0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #character-ring { animation: none; }
+}
+
+#character-emoji {
+  font-size: 80px;
+  line-height: 1;
+  display: block;
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
+}
+
+#total-xp-display {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--muted);
+  margin-top: 10px;
+  letter-spacing: 0.1em;
+  position: relative;
+  z-index: 2;
 }
 
 #character-level {
@@ -340,6 +380,115 @@ body {
   letter-spacing: 0.08em;
 }
 
+/* === DAILY STATS === */
+#daily-stats {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.stat-box {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 20px;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ストリーク3日以上でオレンジに光る */
+.stat-box.streak-active {
+  border-color: #f97316;
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.25);
+}
+.stat-box.streak-active .stat-value {
+  color: #f97316;
+  text-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+}
+
+/* 今日XPありで緑に光る */
+.stat-box.xp-active {
+  border-color: #22c55e;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.2);
+}
+.stat-box.xp-active .stat-value {
+  color: #22c55e;
+  text-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+}
+
+/* === WEEKLY CALENDAR === */
+#weekly-calendar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.cal-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--accent);
+  opacity: 0.6;
+  letter-spacing: 0.15em;
+  margin-bottom: 12px;
+}
+
+#calendar-days {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cal-day {
+  flex: 1;
+  text-align: center;
+}
+
+.cal-day-name {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.cal-dot {
+  width: 16px;
+  height: 16px;
+  margin: 0 auto;
+  background: var(--border);
+  border-radius: 2px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.cal-day.done .cal-dot {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.7);
+}
+
+.cal-day.today .cal-day-name {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.cal-day.today .cal-dot {
+  outline: 1px solid var(--gold);
+  outline-offset: 2px;
+}
+
 /* === WORKOUT BUTTON === */
 #btn-go-workout {
   display: block;
@@ -399,6 +548,7 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 /* Left accent bar */
@@ -464,6 +614,11 @@ body {
   letter-spacing: 0.04em;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.btn-complete:hover {
+  background: rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
 
 .btn-complete:active {
@@ -770,6 +925,14 @@ footer {
 #btn-reset:hover {
   border-color: var(--danger);
   color: var(--danger);
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  #xp-bar { transition: none; }
+  #xp-bar::after { animation: none; }
+  #character-emoji { transition: none; }
+  .popup { animation: none; }
 }
 
 /* === EMPTY STATE === */

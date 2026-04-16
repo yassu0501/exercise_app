@@ -48,14 +48,31 @@
       <div id="app-content">
         <!-- ホーム画面 -->
         <section id="screen-home" class="screen active">
-          <div id="character-display">
-            <div id="character-emoji">🐣</div>
+          <div id="character-display" data-tier="1">
+            <div id="character-ring">
+              <div id="character-emoji">🐣</div>
+            </div>
             <div id="character-level">Lv.1</div>
+            <div id="total-xp-display">TOTAL XP: 0</div>
           </div>
           <div id="xp-bar-container">
             <div id="xp-bar"></div>
           </div>
           <div id="xp-label">0 / 100 XP</div>
+          <div id="daily-stats">
+            <div class="stat-box">
+              <div class="stat-value" id="streak-count">0</div>
+              <div class="stat-label">🔥 連続日数</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="today-xp">0</div>
+              <div class="stat-label">⚡ 今日のXP</div>
+            </div>
+          </div>
+          <div id="weekly-calendar">
+            <div class="cal-title">今週の記録</div>
+            <div id="calendar-days"></div>
+          </div>
           <button id="btn-go-workout">運動する！</button>
         </section>
 

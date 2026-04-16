@@ -105,6 +105,64 @@ function recalculatePlayerStats() {
   state.player = { level, xp, totalXp };
 }
 
+/** 現在の連続日数を計算 */
+function getCurrentStreak(records) {
+  if (records.length === 0) return 0;
+  const dates = [...new Set(records.map(r => r.date))].sort().reverse();
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (dates[0] !== today && dates[0] !== yesterday) return 0;
+  let streak = 1;
+  for (let i = 0; i < dates.length - 1; i++) {
+    const diff = (new Date(dates[i]) - new Date(dates[i + 1])) / (1000 * 60 * 60 * 24);
+    if (diff === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
+/** 今日獲得したXP合計 */
+function getTodayXp(records) {
+  const today = new Date().toISOString().slice(0, 10);
+  return records.filter(r => r.date === today).reduce((sum, r) => sum + (r.xp || 0), 0);
+}
+
+/** ホーム画面のストリーク・今日のXP・週間カレンダーを更新 */
+function renderDailyStats(records) {
+  const streak = getCurrentStreak(records);
+  const todayXp = getTodayXp(records);
+
+  document.getElementById('streak-count').textContent = streak;
+  document.getElementById('today-xp').textContent = todayXp;
+
+  const streakBox = document.getElementById('streak-count').closest('.stat-box');
+  const xpBox = document.getElementById('today-xp').closest('.stat-box');
+  streakBox.classList.toggle('streak-active', streak >= 3);
+  xpBox.classList.toggle('xp-active', todayXp > 0);
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  const activeDates = new Set(records.map(r => r.date));
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    return d;
+  });
+
+  document.getElementById('calendar-days').innerHTML = days.map(d => {
+    const dateStr = d.toISOString().slice(0, 10);
+    const isToday = dateStr === todayStr;
+    const isDone = activeDates.has(dateStr);
+    return `
+      <div class="cal-day ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}">
+        <div class="cal-day-name">${dayNames[d.getDay()]}</div>
+        <div class="cal-dot"></div>
+      </div>
+    `;
+  }).join('');
+}
+
 // === バッジロジック ===
 
 /**
@@ -158,6 +216,13 @@ function checkBadges(badges, records) {
 
 // === UI レンダリング ===
 
+function getLevelTier(level) {
+  if (level <= 5)  return '1';
+  if (level <= 15) return '2';
+  if (level <= 29) return '3';
+  return '4';
+}
+
 function renderHome(player) {
   const char = getCharacter(player.level);
   document.getElementById('character-emoji').textContent = char.emoji;
@@ -167,6 +232,14 @@ function renderHome(player) {
   const pct = Math.min((player.xp / needed) * 100, 100);
   document.getElementById('xp-bar').style.width = pct + '%';
   document.getElementById('xp-label').textContent = `${player.xp} / ${needed} XP`;
+
+  // レベルオーラリングの色を更新
+  document.getElementById('character-display').dataset.tier = getLevelTier(player.level);
+
+  // 累計XP表示
+  document.getElementById('total-xp-display').textContent = `TOTAL XP: ${player.totalXp}`;
+
+  renderDailyStats(state.records);
 }
 
 function renderWorkout() {
