@@ -8,6 +8,7 @@ const EXERCISES = [
   { id: 'situp',        name: '腹筋',                 unit: '10回',  xpPerSet: 50, emoji: '🧘' },
   { id: 'momomage',     name: '腿上げ',               unit: '10回',  xpPerSet: 20, emoji: '🏃' },
   { id: 'shagami',      name: 'しゃがみ運動',          unit: '30秒',  xpPerSet: 40, emoji: '🪑' },
+  { id: 'radio_taiso',  name: 'ラジオ体操',           unit: '1回',   xpPerSet: 75, emoji: '📻' },
 ];
 
 const BADGE_DEFS = [
